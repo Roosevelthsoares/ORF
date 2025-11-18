@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Relatórios gerados
+*.xlsx
+*.csv
+*.odt
+
+# Selenium
+*.png
+debug_urls.txt
+
+# Credenciais (não commitar senhas!)
+# Lembre-se de remover credenciais antes de commitar
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+pagina_*.html
