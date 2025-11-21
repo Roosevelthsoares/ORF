@@ -16,8 +16,8 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 
-USER_EMAIL = "SEU_EMAIL_AQUI"
-USER_PASSWORD = "SUA_SENHA_AQUI"
+USER_EMAIL = "fiscal.pulsar@4cta.eb.mil.br"
+USER_PASSWORD = "K809(F4a[?"
 LOGIN_URL = "https://sport.pulsarconnect.io/login"
 STARLINK_URL = "https://sport.pulsarconnect.io/starlink/starlinkMap"
 
@@ -112,11 +112,13 @@ try:
             time.sleep(2)
     else:
         print("   ⚠ Botão de filtro não encontrado")
+        print("   ℹ Continuando com filtro padrão...")
+        time.sleep(5)
     
 except Exception as e:
     print(f"   ⚠ Erro geral ao aplicar filtro: {e}")
     print("   ℹ Continuando com filtro padrão...")
-    time.sleep(3)
+    time.sleep(5)
 
 print("\n[4/5] Extraindo dados (passando mouse sobre círculos)...")
 
@@ -127,15 +129,68 @@ try:
         EC.presence_of_element_located((By.XPATH, "//table//tbody//tr"))
     )
     time.sleep(5)
-except:
-    print("   ⚠ Timeout aguardando tabela")
-    time.sleep(10)
+except Exception as e:
+    print(f"   ❌ Erro ao carregar tabela: {str(e)[:100]}")
+    print("   ⚠ Verifique se você está logado e na página correta")
+    driver.quit()
+    exit(1)
+
+# Aplicar zoom de 75% para melhor visualização
+print("   🔍 Aplicando zoom de 75%...")
+try:
+    driver.execute_script("document.body.style.zoom='75%'")
+    time.sleep(2)
+except Exception as e:
+    print(f"   ⚠ Erro ao aplicar zoom: {str(e)[:50]}")
+
+# Contar total de itens na tabela (todas as páginas)
+print("   📊 Contando total de itens na tabela...")
+total_items_expected = 0
+try:
+    # Procurar informação de paginação (ex: "1-25 of 44" ou "1–25 of 44")
+    pagination_texts = driver.find_elements(By.XPATH, "//*[contains(text(), 'of') or contains(text(), 'de') or contains(text(), '–')]")
+    for text_elem in pagination_texts:
+        text = text_elem.text
+        # Procurar padrões como "1-25 of 44", "1–25 of 44", etc.
+        import re
+        # Tentar diferentes padrões de regex
+        patterns = [
+            r'of\s+(\d+)',  # "of 44"
+            r'de\s+(\d+)',  # "de 44"
+            r'(\d+)\s*[-–]\s*(\d+)\s+of\s+(\d+)',  # "1-25 of 44"
+            r'(\d+)\s*[-–]\s*(\d+)\s+de\s+(\d+)',  # "1-25 de 44"
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                # Pegar o último número capturado (que é o total)
+                numbers = [int(n) for n in match.groups() if n]
+                if numbers:
+                    total_items_expected = max(numbers)  # O maior número é geralmente o total
+                    print(f"   ✔ Total de itens detectado: {total_items_expected}")
+                    break
+        
+        if total_items_expected > 0:
+            break
+    
+    if total_items_expected == 0:
+        print("   ⚠ Não foi possível detectar o total automaticamente")
+except Exception as e:
+    print(f"   ⚠ Erro ao contar itens: {str(e)[:50]}")
 
 # Scroll para o topo
-driver.execute_script("window.scrollTo(0, 0);")
-time.sleep(2)
+try:
+    driver.execute_script("window.scrollTo(0, 0);")
+    time.sleep(2)
+except Exception as e:
+    print(f"   ❌ Erro ao fazer scroll: {str(e)[:100]}")
+    driver.quit()
+    exit(1)
 
 all_data = []
+kit_ids_processados = set()  # Conjunto para rastrear KIT IDs já processados
+identificadores_processados = set()  # Rastrear combinações OM + KIT ID
 current_page = 1
 has_next_page = True
 
@@ -163,7 +218,7 @@ while has_next_page:
             if len(cells) < 2:
                 continue
             
-            # Coluna 1: OM
+            # Coluna 1: OM (nome)
             om = cells[0].text.strip()
             
             # Pular cabeçalhos/linhas vazias
@@ -188,33 +243,40 @@ while has_next_page:
                     driver.execute_script("arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", segundo_svg)
                     time.sleep(0.8)
                     
-                    # TENTAR ATÉ 3 VEZES para pegar o tooltip
+                    # TENTAR ATÉ 5 VEZES para pegar o tooltip
                     tooltip_found = False
-                    max_tentativas = 3
+                    max_tentativas = 5
                     
                     for tentativa in range(max_tentativas):
                         if tooltip_found:
                             break
                         
-                        # Mover mouse sobre o elemento
+                        # Criar novo ActionChains para cada tentativa (reset)
+                        actions = ActionChains(driver)
+                        
+                        # Mover mouse precisamente sobre o elemento
                         actions.move_to_element(segundo_svg).perform()
-                        time.sleep(3.5)  # Tempo maior para tooltip aparecer
+                        time.sleep(3.5)  # Tempo para tooltip aparecer
                         
                         # Estratégia 1: Tooltip padrão Material-UI (role='tooltip')
                         try:
                             tooltips = driver.find_elements(By.XPATH, "//div[@role='tooltip']")
-                            for tooltip in tooltips:
-                                if tooltip.is_displayed() and tooltip.size['height'] > 0 and tooltip.size['width'] > 0:
-                                    tooltip_text = tooltip.text.strip()
-                                    if tooltip_text and "KIT" in tooltip_text:
-                                        words = tooltip_text.replace("\n", " ").split()
-                                        for word in words:
-                                            if word.startswith("KIT"):
-                                                kit_id = word
-                                                tooltip_found = True
-                                                break
-                                        if tooltip_found:
+                            # Pegar apenas tooltips visíveis e com conteúdo
+                            visible_tooltips = [t for t in tooltips if t.is_displayed() and t.size['height'] > 0 and t.size['width'] > 0]
+                            
+                            # Se houver múltiplos tooltips, pegar o último (mais recente)
+                            if visible_tooltips:
+                                tooltip = visible_tooltips[-1]
+                                tooltip_text = tooltip.text.strip()
+                                if tooltip_text and "KIT" in tooltip_text:
+                                    words = tooltip_text.replace("\n", " ").split()
+                                    for word in words:
+                                        if word.startswith("KIT"):
+                                            kit_id = word
+                                            tooltip_found = True
                                             break
+                                    if tooltip_found:
+                                        break
                         except:
                             pass
                         
@@ -277,8 +339,14 @@ while has_next_page:
                         
                         # Se não achou ainda, mover mouse fora e tentar de novo
                         if not tooltip_found and tentativa < max_tentativas - 1:
+                            # Criar novo ActionChains
+                            actions = ActionChains(driver)
                             actions.move_by_offset(200, 0).perform()
                             time.sleep(0.5)
+                    
+                    # Log se não conseguiu capturar KIT ID após todas as tentativas
+                    if not tooltip_found or not kit_id:
+                        pass  # Será mostrado no print final como vazio
                     
                     # Análise de COR
                     svg_html = segundo_svg.get_attribute('outerHTML').lower()
@@ -297,6 +365,80 @@ while has_next_page:
             
             # Coluna 3: USAGE
             usage = cells[2].text.strip() if len(cells) >= 3 else ""
+            
+            # VERIFICAÇÃO ANTI-DUPLICATA
+            # 1. Se o KIT ID já foi usado, tentar capturar novamente (possível erro de hover)
+            if kit_id and kit_id in kit_ids_processados:
+                print(f"   ⚠ KIT ID duplicado detectado: {kit_id} - Tentando recapturar...")
+                
+                # Tentar capturar novamente com mais tentativas
+                kit_id_backup = kit_id
+                kit_id = ""
+                
+                try:
+                    # Reset e nova tentativa de hover mais cuidadosa
+                    for tentativa_extra in range(7):  # 7 tentativas extras
+                        if kit_id and kit_id != kit_id_backup:
+                            break
+                        
+                        # Mover mouse para longe primeiro
+                        actions = ActionChains(driver)
+                        actions.move_by_offset(-300, -300).perform()
+                        time.sleep(0.5)
+                        
+                        # Scroll para o elemento
+                        driver.execute_script("arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", segundo_svg)
+                        time.sleep(1)
+                        
+                        # Novo hover
+                        actions = ActionChains(driver)
+                        actions.move_to_element(segundo_svg).perform()
+                        time.sleep(4)
+                        
+                        # Tentar capturar tooltip
+                        try:
+                            tooltips = driver.find_elements(By.XPATH, "//div[@role='tooltip']")
+                            visible_tooltips = [t for t in tooltips if t.is_displayed() and t.size['height'] > 0]
+                            
+                            if visible_tooltips:
+                                tooltip = visible_tooltips[-1]
+                                tooltip_text = tooltip.text.strip()
+                                if tooltip_text and "KIT" in tooltip_text:
+                                    words = tooltip_text.replace("\n", " ").split()
+                                    for word in words:
+                                        if word.startswith("KIT"):
+                                            kit_id = word
+                                            break
+                        except:
+                            pass
+                
+                except Exception as e:
+                    pass
+                
+                # Se ainda é o mesmo KIT ID duplicado, pular
+                if not kit_id or kit_id == kit_id_backup:
+                    print(f"      ❌ Não foi possível capturar KIT ID diferente - Linha ignorada")
+                    continue
+                else:
+                    print(f"      ✅ KIT ID recapturado com sucesso: {kit_id}")
+            
+            # 2. Se após recaptura ainda está duplicado, pular
+            if kit_id and kit_id in kit_ids_processados:
+                print(f"   ⚠ Linha {idx+1} ignorada - KIT ID {kit_id} realmente duplicado")
+                continue
+            
+            # 2. Criar identificador único usando OM + KIT ID
+            identificador = f"{om}|{kit_id}" if kit_id else f"{om}|{idx}"
+            
+            # 3. Verificar se esta combinação exata já foi processada
+            if identificador in identificadores_processados:
+                print(f"   ⚠ Linha {idx+1} ignorada - Combinação duplicada: {om[:30]} + {kit_id}")
+                continue
+            
+            # 4. Adicionar aos conjuntos de controle
+            identificadores_processados.add(identificador)
+            if kit_id:
+                kit_ids_processados.add(kit_id)
             
             # Adicionar dados
             all_data.append({
@@ -417,6 +559,19 @@ print(f"   🟢 Verde: {len([x for x in all_data if x['STATUS'] == 'VERDE'])}")
 print(f"   🔴 Vermelho: {len([x for x in all_data if x['STATUS'] == 'VERMELHO'])}")
 print(f"   ⚪ Desconhecido: {len([x for x in all_data if x['STATUS'] == 'DESCONHECIDO'])}")
 print(f"   📋 KIT IDs capturados: {len([x for x in all_data if x['PoP'] != 'N/A'])}")
+
+# Comparar com total esperado (se foi detectado corretamente)
+if total_items_expected > 0 and total_items_expected >= 10:  # Ignorar se o número for muito pequeno (erro de detecção)
+    diferenca = total_items_expected - len(all_data)
+    if diferenca > 0:
+        print(f"\n⚠ ATENÇÃO: {diferenca} item(s) não foram capturados!")
+        print(f"   Esperado: {total_items_expected} | Capturado: {len(all_data)}")
+    elif diferenca < 0:
+        print(f"\n⚠ ATENÇÃO: {abs(diferenca)} item(s) a mais foram capturados!")
+        print(f"   Esperado: {total_items_expected} | Capturado: {len(all_data)}")
+    else:
+        print(f"\n✅ Todos os {total_items_expected} itens foram capturados com sucesso!")
+
 print(f"\n📁 Arquivos:")
 print(f"   • Relatorio_Starlink_Final.xlsx")
 print(f"   • Relatorio_Starlink_Final.csv")

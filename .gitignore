@@ -42,3 +42,14 @@ desktop.ini
 *.tmp
 *.temp
 pagina_*.html
+
+# Scripts de teste e desenvolvimento
+test*.py
+buscar_dados_uso.py
+extract_starlink_table.py
+extrair_via_api.py
+gerar_relatorio_starlink.py
+verificar_mapeamento.py
+
+# Scripts locais
+*.bat
