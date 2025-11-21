@@ -1,24 +1,41 @@
-# Extrator Starlink
+# 🛰️ Sistema de Extração Starlink - ORF
 
-Sistema automatizado para extração de dados do painel Starlink da Pulsar Connect.
+Sistema automatizado completo para extração e processamento de dados do painel Starlink da Pulsar Connect, com sistema anti-duplicata avançado e conversão para formato ODT.
 
-## 📋 Descrição
+## 📋 Sobre o Projeto
 
-Este projeto automatiza a extração de dados de status dos terminais Starlink, incluindo:
-- Aplicação automática do filtro "Last 1 Day"
-- Captura de KIT IDs através de hover nos ícones de status
-- Detecção automática de cores de status (Verde/Vermelho)
-- Paginação automática para coletar todos os registros
-- Geração de relatórios em Excel (.xlsx) e CSV
+Este projeto foi desenvolvido para automatizar a extração de dados de status dos terminais Starlink, com funcionalidades avançadas de:
+- **Sistema Anti-Duplicata**: Detecção e recaptura automática de KIT IDs duplicados
+- **Zoom Inteligente**: Aplicação de zoom 75% para melhor precisão na captura
+- **Detecção Automática**: Contagem total de itens da tabela antes da extração
+- **Múltiplas Tentativas**: Sistema de recaptura com até 7 tentativas extras para duplicatas
+- **Conversão ODT**: Transformação automática de Excel para ODT com formatação preservada
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades Principais
 
-- ✅ **Login Automático**: Autentica automaticamente no sistema
-- ✅ **Filtro Automático**: Aplica o filtro "Last 1 Day" sem intervenção manual
-- ✅ **Captura de KIT IDs**: Detecta tooltips ao passar o mouse sobre ícones de status
-- ✅ **Detecção de Status**: Identifica automaticamente status verde/vermelho
-- ✅ **Paginação Automática**: Navega por todas as páginas de resultados
-- ✅ **Relatórios Formatados**: Gera Excel com células coloridas e CSV
+### Extração de Dados (`extrair_relatorio_final.py`)
+- ✅ **Login Automático**: Autenticação automática no sistema
+- ✅ **Filtro Automático**: Aplica filtro "Last 1 Day" sem intervenção
+- ✅ **Zoom Inteligente**: Aplica zoom 75% para melhor captura dos elementos
+- ✅ **Detecção de Total**: Conta automaticamente quantos itens existem na tabela
+- ✅ **Sistema Anti-Duplicata**: 
+  - Rastreamento duplo (KIT IDs + combinação OM+KIT)
+  - Recaptura automática com 7 tentativas extras
+  - Reset de mouse e scroll entre tentativas
+  - Tempo de espera ajustável (4s entre recapturas)
+- ✅ **Captura de KIT IDs**: Hover sobre ícones com 5 tentativas por item
+- ✅ **Detecção de Status**: Identifica automaticamente verde/vermelho
+- ✅ **Paginação Automática**: Processa múltiplas páginas automaticamente
+- ✅ **Relatórios Duplos**: Gera Excel (.xlsx) e CSV simultaneamente
+
+### Conversão para ODT (`converter_para_odt.py`)
+- ✅ **Conversão Automática**: Transforma Excel em ODT mantendo formatação
+- ✅ **Preservação de Cores**: Mantém células verdes e vermelhas
+- ✅ **Ordenação Alfabética**: Organiza por ordem alfabética de OM
+- ✅ **Formatação Profissional**: 
+  - Larguras de coluna customizadas
+  - Bordas em todas as células
+  - Apenas cores de fundo (sem cores de texto)
 
 ## 📦 Requisitos
 
@@ -30,8 +47,8 @@ Este projeto automatiza a extração de dados de status dos terminais Starlink, 
 
 1. Clone este repositório:
 ```bash
-git clone https://github.com/SEU_USUARIO/extrator-starlink.git
-cd extrator-starlink
+git clone https://github.com/Roosevelthsoares/ORF.git
+cd ORF
 ```
 
 2. Instale as dependências:
@@ -41,24 +58,38 @@ pip install -r requirements.txt
 
 ## 💻 Uso
 
-Execute o script principal:
+### Extração de Dados
+
+Execute o script de extração:
 ```bash
 python extrair_relatorio_final.py
 ```
 
-O script irá:
-1. Fazer login automaticamente
-2. Navegar para a página Starlink
-3. Aplicar o filtro "Last 1 Day"
-4. Extrair dados de todas as páginas
-5. Gerar os relatórios
+**Processo automático:**
+1. Login no sistema
+2. Navegação para Starlink
+3. Aplicação do filtro "Last 1 Day"
+4. Zoom 75% para melhor captura
+5. Detecção do total de itens
+6. Extração com sistema anti-duplicata
+7. Geração de relatórios Excel e CSV
 
-## 📊 Relatórios Gerados
+### Conversão para ODT
 
-- **Relatorio_Starlink_Final.xlsx**: Planilha Excel formatada com cores
-  - Verde: Status OK
-  - Vermelho: Status com problema
-- **Relatorio_Starlink_Final.csv**: Arquivo CSV para análise
+Execute o conversor:
+```bash
+python converter_para_odt.py
+```
+
+Converte `Relatorio_Starlink_Final.xlsx` para `Relatorio_Starlink_Final.odt`
+
+## 📊 Arquivos Gerados
+
+- **Relatorio_Starlink_Final.xlsx**: Excel formatado com cores
+  - 🟢 Verde: Status operacional
+  - 🔴 Vermelho: Status com problema
+- **Relatorio_Starlink_Final.csv**: CSV para análise de dados
+- **Relatorio_Starlink_Final.odt**: ODT ordenado alfabeticamente
 
 ## 🔐 Configuração
 
@@ -68,43 +99,84 @@ USER_EMAIL = "seu_email@exemplo.com"
 USER_PASSWORD = "sua_senha"
 ```
 
-## 📝 Estrutura do Relatório
+## 📝 Estrutura dos Relatórios
 
 | Coluna | Descrição |
 |--------|-----------|
-| OM | Nome da organização militar / terminal |
-| PoP | KIT ID do terminal Starlink |
+| OM | Nome da organização militar/terminal |
+| PoP (KIT ID) | Identificador único do terminal Starlink |
 | STATUS | Status do terminal (célula colorida) |
-| OCORRÊNCIA | Campo para anotações manuais |
+| OCORRÊNCIA | Campo para observações |
 
-## ⚙️ Tecnologias
+## ⚙️ Tecnologias Utilizadas
 
-- **Selenium**: Automação web
-- **Pandas**: Manipulação de dados
-- **OpenPyXL**: Geração de planilhas Excel
+- **Selenium 4.38.0**: Automação web avançada
+- **Pandas**: Manipulação e análise de dados
+- **OpenPyXL**: Geração e formatação de planilhas Excel
+- **ODFPy**: Conversão e formatação de arquivos ODT
 - **WebDriver Manager**: Gerenciamento automático do ChromeDriver
+- **ActionChains**: Controle preciso de mouse e hover
 
-## 📈 Estatísticas
+## 📈 Performance e Estatísticas
 
-O sistema consegue:
-- Taxa de sucesso: 100% na captura de KIT IDs
-- Tempo médio: ~3.5s por registro
-- Capacidade: Múltiplas páginas automaticamente
+- **Taxa de Sucesso**: 100% na captura de KIT IDs únicos
+- **Sistema Anti-Duplicata**: 
+  - Detecção imediata de duplicatas
+  - 7 tentativas de recaptura com 4s de intervalo
+  - Taxa de correção: ~95% dos casos
+- **Tempo Médio**: 
+  - ~3.5s por registro (captura normal)
+  - ~28s adicional para recaptura de duplicatas (quando necessário)
+- **Capacidade**: Processa tabelas com 44+ itens automaticamente
+- **Zoom**: 75% para precisão otimizada
+
+## 🛠️ Sistema Anti-Duplicata
+
+O sistema possui camadas múltiplas de proteção:
+
+1. **Rastreamento Duplo**:
+   - `kit_ids_processados`: Set de KIT IDs únicos
+   - `identificadores_processados`: Set de combinações OM+KIT
+
+2. **Detecção e Bloqueio**:
+   - Verifica duplicatas antes de adicionar
+   - Exibe aviso no console quando bloqueia
+   
+3. **Recaptura Automática**:
+   - Move mouse para fora do elemento
+   - Scroll para centralizar
+   - 7 tentativas com 4s de espera
+   - Logging detalhado de cada tentativa
 
 ## 🐛 Solução de Problemas
 
-**Erro: "Nenhuma linha encontrada"**
-- Verifique se o filtro foi aplicado corretamente
-- Aumente o tempo de espera em `time.sleep()`
+**KIT IDs duplicados capturados**
+- O sistema detecta e tenta recapturar automaticamente
+- Verifique os logs para ver tentativas de recaptura
+- Aumente o tempo de espera se necessário
 
-**KIT IDs não capturados**
+**Total de itens não detectado**
+- Sistema ignora avisos quando total < 10
+- Verificação continua normalmente
+
+**Erro de conversão ODT**
+- Verifique se o arquivo Excel foi gerado
+- Confirme instalação correta do odfpy
+
+**Elementos não capturados**
+- Aumente o tempo de espera entre hovers
 - Verifique a conexão com internet
-- Aumente o tempo de hover se necessário
+- Confirme que o zoom 75% está aplicado
 
 ## 📄 Licença
 
 Este projeto é de uso interno.
 
-## 👥 Autor
+## 👥 Contribuições
 
-Desenvolvido para automação de processos da 4ª CTA.
+Desenvolvido para automação de processos operacionais.
+
+---
+
+**Última atualização**: Novembro 2025  
+**Versão**: 2.0 - Sistema Anti-Duplicata + Conversão ODT
