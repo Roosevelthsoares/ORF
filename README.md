@@ -31,11 +31,13 @@ Este projeto foi desenvolvido para automatizar a extração de dados de status d
 ### Conversão para ODT (`converter_para_odt.py`)
 - ✅ **Conversão Automática**: Transforma Excel em ODT mantendo formatação
 - ✅ **Preservação de Cores**: Mantém células verdes e vermelhas
+- ✅ **Mapeamento Inteligente**: Substitui nomes truncados pelos nomes corretos da planilha OM - KIT ID
 - ✅ **Ordenação Alfabética**: Organiza por ordem alfabética de OM
 - ✅ **Formatação Profissional**: 
   - Larguras de coluna customizadas
   - Bordas em todas as células
   - Apenas cores de fundo (sem cores de texto)
+  - 44 KIT IDs mapeados com nomenclatura padronizada
 
 ## 📦 Requisitos
 
