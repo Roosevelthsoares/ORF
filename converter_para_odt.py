@@ -14,7 +14,7 @@ print("="*75)
 print(" "*20 + "CONVERSOR EXCEL → ODT")
 print("="*75)
 
-# Dicionário de mapeamento KIT ID -> Nome da OM
+# Dicionário de mapeamento KIT ID -> Nome da OM (padrão da planilha OM - KIT ID.xlsx)
 MAPEAMENTO_OM = {
     "KIT304062259": "Cmdo 1ª Bda Inf Sl",
     "KIT304059560": "Cmdo 2ª Bda Inf Sl",
@@ -25,15 +25,13 @@ MAPEAMENTO_OM = {
     "KIT304039763": "4º BIS - 2º PEF - Assis Brasil",
     "KIT304131574": "4º BIS - 3º PEF - Plácido de Castro",
     "KIT304039768": "4º BIS - 4º PEF - Santa Rosa do Purus",
-    "KIT3040397634": "5º BIS – 1º PEF - Yauaretê",
-    "KIT304039771": "5º BIS – 2º PEF - Querari",
+    "KIT304132336": "5º BIS – 2º PEF - Querari",
     "KIT304039241": "5º BIS – 3º PEF - São Joaquim",
     "KIT303910747": "5º BIS – 4º PEF - Cucuí",
     "KIT304039236": "5º BIS – 5º PEF - Maturacá",
     "KIT304039230": "5º BIS – 6º PEF - Pari-Cachoeira",
     "KIT304039765": "5º BIS – 7º PEF - Tunuí",
     "KIT304135657": "7º BIS - 1º PEF - Bonfim",
-    "KIT304059865": "7º BIS - 2º PEF - Normandia",
     "KIT304059878": "7º BIS - 3º PEF - Pacaraima",
     "KIT304039242": "7º BIS - 4º PEF - Surucucu",
     "KIT304039235": "7º BIS - 5º PEF - Auaris",
@@ -41,18 +39,16 @@ MAPEAMENTO_OM = {
     "KIT304059852": "7º BIS - Base Pakilapi",
     "KIT304059547": "7º BIS - Base Kaianaú",
     "KIT303901850": "7º BIS - DEF Waikas",
-    "KIT303904970": "8º BIS – 1º PEF-Palmeira do Javari",
     "KIT304059879": "8º BIS - 2º PEF - Ipiranga",
-    "KIT304059946": "8º BIS - 4º PEF - Estirão do Equador",
+    "KIT304104044": "8º BIS - 4º PEF - Estirão do Equador",
     "KIT304039752": "61º BIS - DEF- Marechal Thaumaturgo",
     "KIT304132549": "34º BIS - Oiapoque",
     "KIT303903287": "34º BIS - Vila Brasil",
     "KIT304131555": "34º BIS - Tiriós",
     "KIT304039747": "3º BIS",
-    "KIT303909856": "6º BIS",
     "KIT304132264": "6º BIS - 1º PEF - Príncipe da Beira",
     "KIT303844328": "17º BIS",
-    "KIT303847361": "17º BIS – 3º PEF-Vila Bittencourt",
+    "KIT304132552": "17º BIS – 3º PEF-Vila Bittencourt",
     "KIT304039751": "HGuT",
     "KIT304059544": "2º B Log Sl",
     "KIT304039748": "21ª Cia E Cnst",
@@ -62,8 +58,6 @@ MAPEAMENTO_OM = {
     "KIT304132551": "4º CTA 02 - Manaus",
     "KIT304145658": "Cmdo 6º BIS 02",
     "KIT304132540": "2º PEF - Normandia",
-    "KIT304132552": "3º PEF - Vila Bittencourt",
-    "KIT304132336": "Querari - AM/CFRN",
     "KIT304145662": "4º CTA 01 - Manaus",
     "KIT304059853": "1º PEF Yauaretê"
 }
